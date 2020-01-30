@@ -1,0 +1,33 @@
+<head>
+    <title>TuiSearch - Vietnamese Destination Search</title>
+    <span style="font-family:Arial">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">  <link href="{{ url_for('static',filename='css/button.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ url_for('static',filename='css/style.css') }}" rel="stylesheet" type="text/css">
+  
+    <script src="{{ url_for('static',filename='js/button.js') }}"></script>
+    <script src="{{ url_for('static',filename='js/instantsubmit.js') }}"></script>
+  
+  
+  </head>
+  
+  <body>
+    <!-- <div class="topnav">
+      <img src="{{ url_for('static',filename='images/logo.jpg') }}">
+    </div>  -->
+    <center>
+  
+      <div class="row">
+       <img src="{{ url_for('static',filename='images/logo.jpg') }}">
+      </div>
+      <b>Hello my friend! please insert your query image</b><br>
+
+      <form method=post enctype=multipart/form-data> 
+        <br><input type=file name=file /><br><br>
+          <button type=submit class='large blue button'>Search now</button>
+  
+        </form>
+      <a href="sample/0"><button type=submit class='large green button'>Or search from samples</button></a><br>
+
+  </center>
+  {% block body %}{% endblock %}
+  </body>

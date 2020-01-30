@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>TuiSearch Results</title>
+    <!-- Bootstrap -->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css">
+    <link href="{{ url_for('static',filename='css/button.css') }}" rel="stylesheet" type="text/css">
+        
+  </head>
+
+  <body>
+
+    <center><img src="{{ url_for("static",filename="images/logo.jpg") }} " width=75%></center>
+    <center><a href="../"><button type=submit class='large red button'>Back to home</button></a></center>
+<br>
+
+    
+
+
+    <div class="container">
+      {{ pagination.links }}
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th><center>Image</center></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for image_id in image_ids %}
+            <tr>
+              <td>{{ loop.index + (page - 1) * per_page }}</td>
+              <td><center><img src="https://res.cloudinary.com/hxlgfbdfr/image/upload/v1579842339/tuisearchweb/{{ image_id }}.jpg" width=70%></center></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {{ pagination.links }}
+    </div>
+  </body>
+</html>
