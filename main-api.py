@@ -51,7 +51,7 @@ ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 def get_image_ids(offset=0, per_page=10):
     return image_ids[offset: offset + per_page]
 
-# No caching at all for API endpoints.
+# This is for cleaning website cache
 @app.after_request
 def add_header(response):
     # response.cache_control.no_store = Tru
@@ -60,6 +60,7 @@ def add_header(response):
     response.headers['Expires'] = '-1'
     return response
 
+#
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -67,9 +68,9 @@ def allowed_file(filename):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global image_ids
-   
+    
+    # If users post an image onto the server
     if request.method == 'POST':
-        print('hello')
         # check if the post request has the file part
         if 'file' not in request.files:
             flash('No file part')
@@ -80,19 +81,25 @@ def index():
         if file.filename == '':
             flash('No selected file')
             return redirect(request.url)
+        # if user submit a file and that file is valid
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
+            # construct the input path
             input_file_path = os.path.join(app.config['UPLOAD_FOLDER'], INPUT_FILE_NAME)
+            #  save that file to the folder
             file.save(input_file_path)
-            # if not (scanner(input_file_path)):
-            #     return render_template("failscan.html")
-            # return render_template("succeedscan.html")
+        
+        # Transform that image into vectors user 3 pre-initialized moduel
         image_vector = inference("static/images/input.jpg",tflite_interpreter_obj,scaler_obj,pca_obj)
+        
+        # Get the NUM_NEAREST_NEIGHBORS neighbors of that vector to a pretrained indexing module
+        # This will return a top nearest image_ids that closest to the vector
         image_ids = approx_search_obj.get_nns_by_vector(image_vector,NUM_NEAREST_NEIGHBORS)
-        print("before ",image_ids[0:10])
 
+        # Perform ranking by comparing the query vector to nearest neighbor
         image_ids = ranking(image_vector,images_features_scaled_pca,image_ids)
-        print("after ",image_ids[0:10])
+        
+        # This is for rendering the table in result page
         page, per_page, offset = get_page_args(page_parameter='page',
                                             per_page_parameter='per_page')
         total = len(image_ids)
@@ -103,14 +110,25 @@ def index():
         
     else:
         return render_template('templates/home.html')
+    
+# Sample page for IR
+# Given an idx that represent the idx-th sample
 @app.route('/sample/<idx>/')
 def sample(idx):
+    # If idx != 0 then perform retrieval on the idx-th sample
     if idx!='0':
         global image_ids
+        # Transform that image into vectors user 3 pre-initialized moduel
         image_vector = inference("static/images/"+idx+".jpg",tflite_interpreter_obj,scaler_obj,pca_obj)
+        
+        # Get the NUM_NEAREST_NEIGHBORS neighbors of that vector to a pretrained indexing module
+        # This will return a top nearest image_ids that closest to the vector
         image_ids = approx_search_obj.get_nns_by_vector(image_vector,NUM_NEAREST_NEIGHBORS)
 
+        # Perform ranking by comparing the query vector to nearest neighbor
         image_ids = ranking(image_vector,images_features_scaled_pca,image_ids)
+        
+        # This is for rendering the table in result page
         page, per_page, offset = get_page_args(page_parameter='page',
                                             per_page_parameter='per_page')
         total = len(image_ids)
@@ -119,8 +137,11 @@ def sample(idx):
                                 css_framework='bootstrap4')
         return redirect(url_for('result'))
     else:
+        # If idx = 0
+        # Render the sample template
         return render_template('templates/sample.html')
 
+# This is for rendering the table in result page
 @app.route('/result')
 def result():
     page, per_page, offset = get_page_args(page_parameter='page',
@@ -135,44 +156,6 @@ def result():
                         per_page=per_page,
                         pagination=pagination,
                         )
-    
-@app.route('/cropper',methods=['GET', 'POST'])
-def cropper():
-    if request.method == 'POST':
-        print("hey")
-        # check if the post request has the file part
-        if 'file' not in request.files:
-            print("no file")
-            flash('No file part')
-            return redirect(request.url)
-        file = request.files['file']
-        # if user does not select file, browser also
-        # submit an empty part without filename
-        if file.filename == '':
-            print("no select")
-            flash('No selected file')
-            return redirect(request.url)
-        if file and allowed_file(file.filename):
-            print("ok")
-            filename = secure_filename(file.filename)
-            input_file_path = os.path.join(app.config['UPLOAD_FOLDER'], INPUT_FILE_NAME)
-            file.save(input_file_path)
-            # if not (scanner(input_file_path)):
-            #     return render_template("failscan.html")
-            # return render_template("succeedscan.html")
-        image_vector = inference("static/images/input.jpg",tflite_interpreter_obj,scaler_obj,pca_obj)
-        image_ids = approx_search_obj.get_nns_by_vector(image_vector,NUM_NEAREST_NEIGHBORS)
-        print("before ",image_ids[0:10])
 
-        image_ids = ranking(image_vector,images_features_scaled_pca,image_ids)
-        print("after ",image_ids[0:10])
-        page, per_page, offset = get_page_args(page_parameter='page',
-                                            per_page_parameter='per_page')
-        total = len(image_ids)
-        pagination_image_ids = get_image_ids(offset=offset, per_page=per_page)
-        pagination = Pagination(page=page, per_page=per_page, total=total,
-                                css_framework='bootstrap4')
-        return redirect(url_for('result'),)
-    return render_template("templates/form.html")
 if __name__ == '__main__':
     app.run(debug=True)
