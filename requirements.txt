@@ -2,7 +2,7 @@ Flask==1.1.1
 Jinja2==2.10.3
 numpy==1.18.1
 requests==2.22.0
-urllib3==1.25.7
+urllib3==1.25.8
 Werkzeug==0.16.0
 gunicorn==19.9.0
 annoy==1.16.3
